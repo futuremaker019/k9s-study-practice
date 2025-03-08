@@ -16,9 +16,14 @@ spec:
       containers:
       - name: nginx
         image: nginx:1.27.0
+        resources:
+          requests:
+            cpu: "300m"
+            memory: "500Mi"
+          limits:
+            cpu: "300m"
+            memory: "500Mi"
         ports:
           - containerPort: 80
-      # - name: redis
-      #   image: redis
-      #   ports:
-      #     - containerPort: 6379
+      nodeSelector:
+        optimized_type: cpu

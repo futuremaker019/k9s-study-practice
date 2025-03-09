@@ -207,3 +207,45 @@ kubectl get pods
 클라우드 서비스에서 제공하는 쿠버네티스는 오토스케일링 기능을 제공하며 노드가 부족할 떄는 스케일 아웃, 싱행되지 않는 노드가 존재할 경우 스케일 인을 하는 역할을 한다.
 
 GCP의 GKE 경우 별다른 설정 없이 노드 풀이 `클러스터 자동 확장 처리 사용 설정` 기능을 활성화 한다면 자동으로 스케일링이 된다.
+
+<br>
+
+# Namespace
+
+같은 클러스터 내에서 작업공간을 분리하기 위한 기능
+
+namespace 생성
+
+```
+kubectl create namespace [namespace 명]
+ex) kubectl create namespace new-space
+```
+
+적용
+
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sample-pod
+  namespace: new-space      # namespace 수정
+spec: 
+  containers: 
+  - name: nginx
+    image: nginx:1.27.0
+    ports: 
+    - containerPort: 80
+```
+
+yml 수정 후 pod 생성
+
+```
+kubectl apply -f smaple-pod.yml
+```
+
+적용된 namespace 에서 실행되는 pod 확인
+
+```
+kubectl get pods -n [namespace 명]
+ex) kubectl get pods -n new-space
+```

@@ -249,3 +249,103 @@ kubectl apply -f smaple-pod.yml
 kubectl get pods -n [namespace 명]
 ex) kubectl get pods -n new-space
 ```
+
+<br>
+
+# ConfigMap과 Secet
+
+여러 종류의 pod에 동일한 환경변수를 적용해야 한다면 ConfigMap 이나 Sceret 을 이용하여 k8s에 디런 정보를 넣어놓고 여러 오브젝트가 사용할 수 있도록 만듬
+
+### ConfigMap과 Secret의 차이
+
+ConfigMap과 Secret은 사용되는 원리는 같으나, 보안상 중요한 정보를 담을때는 Secret을 사용한다.
+
+> 트러블 슈팅
+>
+> build 한 Dockerfile에 명시된 --platform 이 제대로 동작하지 않음
+> `docker buildx build --platform=linux/amd64 -t` 를 사용하여 빌드 후 push 하니 제데로 동작함
+
+### ConfigMap 적용 방법
+
+- configMap yml 파일 작성
+- 생성하려는 pod yml 파일에 환경변수 정보를 추가한다.
+
+```yml
+# sample-pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sample-pod
+  namespace: default
+spec:
+  containers:
+  - name: nginx
+    image: asia-northeast3-docker.pkg.dev/ornate-axiom-452414-s4/kube-study-registry/configmap-sample:1.0.0
+    env:              # configMap을 추가하기위한 환경변수 선언
+    - name: TITLE
+      valueFrom:
+        configMapKeyRef: 
+          name: sample-configmap
+          key: PUBLIC_NAME
+        
+    ports:
+    - containerPort: 80
+```
+
+- apply 명령어로 configMap 적용
+
+```
+kubectl apply -f sample-configmap.yml
+```
+
+- pod 생성
+
+```
+kubectl apply -f sample-pod.yml
+```
+
+- 포트 포워딩하여 환경변수가 적용됬는지 확인
+
+```
+kubectl port-forward sample-pod 8000:80
+```
+
+
+### Secret 작용 방법
+
+- secret yml 작성
+
+```yml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sample-secret
+  namespace: default
+data:
+  SECRET_NAME: MTIzNA==   # base64로 인코딩 된 값을 넣어야 적용된다. secret이라고 해서 민감한 정보를 저장한다고 알아서 보안처리가 되는것이 아님을 유의해야한다.
+```
+
+- pod yml 파일에 추가
+
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sample-pod
+  namespace: default
+spec:
+  containers:
+  - name: nginx
+    image: asia-northeast3-docker.pkg.dev/ornate-axiom-452414-s4/kube-study-registry/configmap-sample:1.0.0
+    env:          # 환경변수 추가 - secret 적용
+    - name: TITLE
+      valueFrom:
+        secretKeyRef:
+          name: sample-secret
+          key: SECRET_NAME     
+    ports:
+    - containerPort: 80
+```
+
+- 적용은 configMap 과 동일하다
+

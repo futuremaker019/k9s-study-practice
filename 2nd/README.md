@@ -280,7 +280,7 @@ metadata:
 spec:
   containers:
   - name: nginx
-    image: asia-northeast3-docker.pkg.dev/ornate-axiom-452414-s4/kube-study-registry/configmap-sample:1.0.0
+    image: [gcp artifact registry]
     env:              # configMap을 추가하기위한 환경변수 선언
     - name: TITLE
       valueFrom:
@@ -343,7 +343,7 @@ metadata:
 spec:
   containers:
   - name: nginx
-    image: asia-northeast3-docker.pkg.dev/ornate-axiom-452414-s4/kube-study-registry/configmap-sample:1.0.0
+    image: [gcp artifact registry]
     env:          # 환경변수 추가 - secret 적용
     - name: TITLE
       valueFrom:

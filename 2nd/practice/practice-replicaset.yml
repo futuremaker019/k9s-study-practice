@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ReplicaSet
+metadata:
+  name: web-app-replicaset
+  namespace: sparta-system
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: second-week
+  template:
+    metadata:
+      labels:
+        app: second-week
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:1.27.0
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+        ports:
+          - containerPort: 80
+      - name: redis-container
+        image: redis:6.2
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "100m"
+            memory: "128Mi"
+        nodeSelector:
+          optimized_type: general
+

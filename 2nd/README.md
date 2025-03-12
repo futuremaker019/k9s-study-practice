@@ -310,6 +310,13 @@ kubectl apply -f sample-pod.yml
 kubectl port-forward sample-pod 8000:80
 ```
 
+생성된 configmap 확인 명령어
+
+```
+# namespace를 명시하지 않는다면 default로 잡는다.
+kubectl get configmaps -n [namespace명]
+ex) kubectl get configmaps -n new-space
+```
 
 ### Secret 작용 방법
 
@@ -349,3 +356,11 @@ spec:
 
 - 적용은 configMap 과 동일하다
 
+적용된 secret 확인 명령어
+
+```
+# namespace를 명시하지 않는다면 default로 잡힌다.
+kubectl get secrets -n [namespace 명]
+
+ex) kubectl get secrets -n new-space
+```

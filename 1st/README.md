@@ -31,4 +31,7 @@ pod가 동작중인지 포트 포워딩으로 확인 하는 명령어
 ```
 kubectl port-forward [pod 명] [host port:pod port]
 ex) kubectl port-forward sample-pod 8000:80
+
+# namespac가 존재하는 pod는 namespace 명령어를 추가하자
+kubectl port-forward [pod 명] --namespace [namespace 명] [host port]:[pod port]
 ```

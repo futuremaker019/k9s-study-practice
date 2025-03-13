@@ -180,3 +180,60 @@ address의 주소로 접속
 > ingress 를 생성하면 address가 공백일 수 있음. 시간이 지나면 생성되지만 address가 생성되지 않는다면 트러블 슈팅 필요
 
 
+<br>
+
+# Deployment
+
+## 롤링 배포 전략
+
+pod를 순차적으로 배포하여 down-time(유저들이 서비스에 접속할 수 없는 상태)를 방지한다.
+
+새 버전의 pod가 배포되고 기동이 될때까지 기존의 pod가 계속 동작하도록 함 -> 하나씩 점진적으로 pod의 배포를 실행한다.
+
+### 실습
+
+deployment script 작성
+
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-deployment
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sample-app
+  template:
+    metadata:
+      labels:
+        app: sample-app
+    spec:
+      containers:
+      - name: sample-app
+        image: nginx:1.27.0
+        ports:
+          - containerPort: 80
+```
+
+스크립트 실행
+
+```
+kubectl apply -f sample-deployment.yml
+```
+
+deployment 생성 확인
+
+```
+kubectl get deployments
+```
+
+> Deployment 스크립트는 ReplicaSet의 스크립트와 동일함 (kind만 다름)
+
+container를 수정하여 재배포하면 롤링 배포 전략에 따라 pod를 점신적으로 배포 및 기동한다.
+
+<img src="../images/deployment.png" width="600"/>
+
+> 새로운 pod가 생성 및 배포되고 기동한다. 그리고 순차적으로 기존 pod가 종료 및 삭제 됨
+> 기존 Deployment는 새로운 Deployment의 pod가 모두 배포되면 삭제된다.

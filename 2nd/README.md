@@ -196,7 +196,7 @@ kubectl get pods
 
 이때, 생성하지 않은 라벨을 추가하면 아래와 같이 생성된 pod 들은 실행되지 않고 pending의 상태로 대기한다. 
 
-<img src="./images/nodeGroup.png" width="600"/>
+<img src="../images/nodeGroup.png" width="600"/>
 
 정해지지 않았던 라벨을 추가하면 다시 Running 상태로 돌아온다.
 

@@ -96,3 +96,87 @@ GCP는 아래의 명령어를 입력하여 방화벽을 개방함
 ```
 gcloud compute firewall-rules create nodeport-study-allow-port --allow=tcp:30001
 ```
+
+
+<br>
+
+# Service의 한계
+
+전송계층인 L4 역할을 하는 `services`는 웹서비스를 운영 함에 있어서는 아래와 같인 이류로 부족할 수 있다.
+
+1. 접속하는 경로마다 다른 서비스로 연결하고 싶은 경우
+  - path에 따른 트래픽의 분산이 제한됨
+    - /community 경로에 접속하는 트래픽을 커뮤니티 관련 서비스로 라우팅하는 기능이 제한됨
+  - service는 L4 로드 벨런서를 사용하는 전송계층에서 동작하며 주로 IP 주소와 포트 번호를 기준으로 트래픽을 분산하기 때문에 복잡한 라우팅이 필요할 때는 제한적일 수 있다.
+2. SSL 을 적용하고 싶은 경우
+3. 복잡한 보안설정이 필요한 경우
+
+이러한 문제는 `Ingress`에서 웹서버 미들웨어를 바탕으로 해결이 가능하다.
+
+<br>
+
+# Ingress 실습
+
+aws는 필요한 것들은 강의 노트를 보고 따라하자
+
+> 내가 한 설정들 (GCP를 사용했음)
+
+helm 설치
+
+```
+brew install helm
+```
+
+ingress script 작성
+
+```yml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sample-ingress
+  namespace: default
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  # ingressClassName: alb     # aws 설정이다. gcp에서는 명시하지 않아도 됨
+  rules:
+    - http:
+        paths:
+        - path: /
+          pathType: Prefix          # path에 대한 설정. 각 paht에 대한 정의가 가능하다.
+          backend:
+            service:
+              name: sample-service
+              port:
+                number: 80
+        - path: /v1/admin                # /admin 으로 path 설정하여 사용가능
+          pathType: Prefix               # prefix 외에 exact, ImplementationSpecific 으로 사용가능
+          backend:
+            service:
+              name: sample-service       # 이전에 생성한 service. ingress 는 service의 프록시 서버 역할을 한다.
+              port:
+                number: 80
+```
+
+[pathType 공식문서](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types) 로 정확한 사용법을 확인하자
+
+ingress script 적용 명령어
+
+```
+kubectl apply -f sample-ingress.yml
+```
+
+ingress 생성 확인
+
+```
+kubectl get ingresses
+```
+
+<img src="../images/ingress.png" width="600"/>
+
+address의 주소로 접속
+
+> ingress 를 생성하면 address가 공백일 수 있음. 시간이 지나면 생성되지만 address가 생성되지 않는다면 트러블 슈팅 필요
+
+

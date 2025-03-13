@@ -17,3 +17,10 @@ spec:
               name: sample-service
               port:
                 number: 80
+        - path: /third-week-exercise
+          pathType: Prefix
+          backend:
+            service:
+              name: practice-service
+              port:
+                number: 80

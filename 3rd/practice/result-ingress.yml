@@ -1,0 +1,59 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+  namespace: sparta-system
+  annotaions:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  rules:
+  - host: sparta.com
+    http:
+      paths:
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: admin-service
+            port:
+              number: 80
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 8080
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-service
+            port:
+              number: 80
+  tls:
+    - hosts:
+      - sparta.com
+      secretName: sparta-tls
+
+# 2. [문제 2] 참고 문서를 참고하여 다음 조건을 만족하는 Ingress 오브젝트를 정의하는 YAML 파일을 작성하세요.
+# 참고 문서: https://kubernetes.io/ko/docs/concepts/services-networking/ingress/
+# 오브젝트의 이름: web-ingress
+# 네임스페이스: sparta-system
+# 아래 호스트 주소로 접속 했을 때만 해당 Ingress가 동작하도록 한다.
+# sparta.com
+# 각 라우팅 주소마다 아래와 같은 Service에 연결되도록 한다.
+# /admin 이하로 들어오는 요청
+# 서비스 이름: admin-service
+# 서비스 포트: 80
+# /api 이하로 들어오는 요청
+# 서비스 이름: api-service
+# 서비스 포트: 8080
+# 이외의 모든 요청
+# 서비스 이름: app-service
+# 서비스 포트: 80
+# TLS 설정
+# 호스트: sparta.com
+# Secret 오브젝트 이름: sparta-tls
+# (sparta-tls 오브젝트는 이미 정의 되어 있다고 가정한다.)

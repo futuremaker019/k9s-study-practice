@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}-svc
+  namespace: noah
+spec:
+  selector:
+    app: {{  .Values.appName }}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: {{ .Values.appPort }}

@@ -1,0 +1,4 @@
+appName: "third-week-app"
+image: "teamspartacontents/k8s_lecture1:third-week-exercise"
+replicaCount: 2
+appPort: 3000

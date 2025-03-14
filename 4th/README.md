@@ -108,3 +108,141 @@ ex) kubectl create token dashboard-admin-sa -n kube-system
 # JWT token 생성됨
 > eyJhbGciOiJSUzI1NiIsImtpZCI6Ikg...
 ```
+
+<br>
+
+# Helm Chart 를 직접 만들어 보자
+
+helm chart 생성 명령어
+
+```
+helm create [helm chart 명]
+
+ex) helm create noah
+```
+
+helm chart를 생성하면 helm chart 명을 명시한 디렉토리가 생성되며 아래의 파일 및 디렉토리가 생성됨
+
+```
+charts
+templates           # 실습에서는 template 내부에 생성된 파일들을 모두 지워줌
+.helmignore
+Chart.yml
+values.yml
+```
+
+```yml
+# Chart.yml
+apiVersion: v2
+name: noah
+description: study for helm
+
+type: application           # application은 helm chart 를 application으로 직접 사용할 것을 명시함, 
+
+version: 0.1.0              # 메타 데이터 (임의로 지정이 가능함)
+
+appVersion: "1.16.0"        # 메타 데이터 (임의로 지정이 가능함)
+```
+
+deployment.yml 과 service.yml은 공통으로 사용하며, value 파일의 변수를 변경하여 적용할 수 있다.
+
+예시는 아래와 같음
+
+```yml
+# deployment.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}-deployment
+  namespace: noah
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      containers:
+      - name: {{ .Values.appName }}
+        image: {{ .Values.image }}
+        ports: 
+          - containerPort: {{ .Values.appPort }}
+```
+
+```yml
+# service.yml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}-svc
+  namespace: noah
+spec:
+  selector:
+    app: {{  .Values.appName }}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: {{ .Values.appPort }}
+```
+
+```yml
+# values.yml
+
+appName: "nginx"
+image: "nginx:1.27.0"
+replicaCount: 3
+appPort: 80
+```
+
+```yml
+# third-week-values.yml
+
+appName: "third-week-app"
+image: "teamspartacontents/k8s_lecture1:third-week-exercise"
+replicaCount: 2
+appPort: 3000
+```
+
+helm chart 생성 명령어
+
+```
+# --create-namespace: namespace가 존재하지 않는다면 생성하라는 flag
+helm install [Helm 릴리즈 명] [Helm 차트 주소(경로)] -f [values.yaml 파일 경로] --create-namespace --namespace [namespace 명]
+ex) helm install noah-nginx-app ./noah --create-namespace --namespace noah
+
+helm install noah-third-week-app ./noah -f ./noah/third-week-values.yml --create-namespace --namespace noah
+ex) helm install noah-third-week-app ./noah -f ./noah/third-week-values.yml --create-namespace --namespace noah
+```
+
+helm chart 삭제 명령어
+
+```
+helm delete [Helm 릴리즈 명] --namespace [namespace 명]
+
+ex) helm delete noah-nginx-app --namespace noah
+```
+
+### Helm Chart 확인
+
+생성된 helm list 를 확인하는 명령어
+
+```
+helm list -n [namespace 명]
+
+ex) helm list -n noah
+```
+
+생성된 pod, service 확인
+
+```
+kubectl get pods -n noah
+kubectl get svc -n noah
+```
+
+
+

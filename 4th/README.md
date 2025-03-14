@@ -26,7 +26,7 @@ Helm 차트도 다른 도구의 페키지 매니저와 같이 의존성을 설�
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | helm repo add [repository 명] [주소]                                      | 특정 주소의 레포지토리에 있는 Helm 차트를 내 컴퓨터로 불러온다. <br> (레포지토리란 Helm 차트를 모아놓은 공간이라고 생각하면 됨) |
 | helm install [Helm 릴리즈 명] [Helm 차트 주소] -f [values.yaml 파일 경로] | Helm 차트를 내 쿠버네티스 클러스터에 설치한다. <br> 릴리즈란 Helm 차트가 설치된 단위를 나타내는 객체이다.                       |
-| helm list                                                                 | 쿠버네티스 클러스터 내에 설치된 helm 릴리즈 목록을 조회한다.                                                                    |
+| helm list -n [namespace 명]                                                                | 쿠버네티스 클러스터 내에 설치된 helm 릴리즈 목록을 조회한다.                                                                    |
 | helm uninstall [Helm 릴리즈명]                                            | Helm 릴리즈를 삭제한다.                                                                                                         |
 | helm upgrade [Helm 릴리즈명] -f [values.yaml 파일 경로]                   | 설치된 Helm 릴리즈를 수정한다.                                                                                                  |
 | helm rollback [RELEASE] [REVISION]                                        | 이전의 특정 릴리스 상태로 애플리케이션을 되돌리는 데 사용                                                                       |
@@ -212,6 +212,8 @@ helm chart 생성 명령어
 
 ```
 # --create-namespace: namespace가 존재하지 않는다면 생성하라는 flag
+# values.yml이 존재한다면 파일을 직접 명시하지 않아도 되는듯
+
 helm install [Helm 릴리즈 명] [Helm 차트 주소(경로)] -f [values.yaml 파일 경로] --create-namespace --namespace [namespace 명]
 ex) helm install noah-nginx-app ./noah --create-namespace --namespace noah
 
@@ -244,5 +246,9 @@ kubectl get pods -n noah
 kubectl get svc -n noah
 ```
 
+<br>
 
+# Prometheus & Grafana
 
+Prometheus 란 시계열 데이터를 담는 회적화된 데이터베이스이다.
+- 시계열 데이터란: 시간의 흐름에 따라 값의 변화에 중점을 둔 데이터를 말한다.

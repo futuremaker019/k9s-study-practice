@@ -1,4 +1,4 @@
 appName: "nginx"
 image: "nginx:1.27.0"
-replicaCount: 3
+replicaCount: 5
 appPort: 80

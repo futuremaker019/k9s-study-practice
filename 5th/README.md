@@ -271,3 +271,25 @@ kubectl apply -f cronjob.yml
 ```
 kubectl delete cronjob [cronjob 명]
 ```
+
+<br>
+
+# 미니프로젝트 구축
+
+mini-project.yml 실행함
+
+> ConfigMap, Service, Deployment, Ingress가 하나의 yml 파일로 묶어서 실행함
+
+> GCP로 실행할시 Ingress에 ingressClassName은 지우자. -> address 안뜸
+
+이전에 올려둔 prometheus와 grafana를 이용하여 테스트함
+
+미니 프로젝트에 미리 만들어진 부하테스트를 실행하여 부하를 어떻게 분리할지 고민 
+- Deployment의 replicas를 3 -> 10으로 증가시켜 pod를 늘리는 방향으로 진행
+- Grafana의 대시보드에서 Compute Resources/Workload 에 들어가 부하 확인
+- pod가 새로 생성되면서 부하가 분산됨을 확인
+
+
+다음장에서는 pod를 직접 늘려주는것이 아닌 k8s가 자동으로 늘려주는 방식을 진행함
+
+<br>

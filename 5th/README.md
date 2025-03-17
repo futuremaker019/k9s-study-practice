@@ -155,3 +155,119 @@ ex) kubectl exec -it mysql-0 -- bash
 # pod 내부에 다른 컨테이너가 존재한다면 -c 를 붙이고 컨테이너명을 넣어주어야 한다.
 kubectl exec -it [pod명] -c [container명] -- bash
 ```
+
+<br>
+
+# Job/Cron Job 개념
+
+### Batch 프로그램이란
+
+Batch 프로그램이란, 여러 데이터를 일괄적으로 가공하는 작업을 뜻한다. 이러한 프로그램 실행단위를 `Job`이라고 함
+
+> 쿠버네티스에서는 Job 오브젝트를 통해 만들어진 Pod는 컨테이너들이 모두 실행이 종료되면, 그대로 사라져버리는 속성을 가짐
+
+일정주기마다 오브젝트를 실행하기 위해 쿠버네티스에서는 `CronJob`이라는 오브젝트가 존재함
+
+```yml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: eightzero-delete-job
+  namespace: default
+spec:
+  templates:
+    spec:
+      containers:
+      - name: mysql-client
+        image: mysql:8.0
+        env:
+        - name: MYSQL_HOST
+          valueFrom:
+            secretKeyRef:
+              name: mini-project-secret
+              key: DB_HOST
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mini-project-secret
+              key: DB_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mini-project-secret
+              key: DB_PASS
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mini-project-secret
+              key: DB_DATABASE
+        command: ["sh", "-c", "mysql -h$MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e \"DELETE FROM users WHERE user_code = '00000000';\""]     # Job 실생시 실행하는 명령어
+      restartPolicy: Never      # Job을 실패하면 다시 실행되지 않도록 함
+```
+
+job을 실행하자. 실행 명령어는 동일함
+
+```
+kubectl apply -f job.yml
+```
+
+실행 후 pod 를 확인하면 상태값이 `ContainerCreating`에서 `Complete`으로 변한것을 확인할 수 있음
+
+직접 mysql 에 접속 후 삭제됬는지 확인
+
+```yml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: eightzero-delete-cronjob
+  namespace: default
+spec:
+  schedule: "*/1 * * * *"               # cron 생성
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: mysql-client
+            image: mysql:8.0
+            env:
+            - name: MYSQL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: mini-project-secret
+                  key: DB_HOST
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mini-project-secret
+                  key: DB_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mini-project-secret
+                  key: DB_PASS
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: mini-project-secret
+                  key: DB_DATABASE
+            command: ["sh", "-c", "mysql -h$MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e \"DELETE FROM users WHERE user_code = '00000000';\""]
+          restartPolicy: Never
+  successfulJobsHistoryLimit: 3         # 성공한 job history를 3개만 생성하도록 함.  
+  failedJobsHistoryLimit: 3             # 실패한 job history를 3개만 생성하도록 함.
+                                        # history에 제한을 두지 않으면 cronjob이 1분주기로 돌며 반복적인 history를 생성하게 됨
+```
+
+cronjob 실행하기
+
+```
+kubectl apply -f cronjob.yml
+```
+
+1분마다 실행할 수 있도록 cron 을 설정했으므로 cronjob은 종료되지 않고 계속 실행됨
+
+종료 명령어는 동일하다. 그냥 delete
+
+```
+kubectl delete cronjob [cronjob 명]
+```

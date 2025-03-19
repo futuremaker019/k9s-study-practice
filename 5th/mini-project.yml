@@ -24,7 +24,7 @@ kind: Deployment
 metadata:
   name: last-week-project-deployment
 spec:
-  replicas: 10
+  replicas: 3
   selector:
     matchLabels:
       app: last-week-project

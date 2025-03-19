@@ -253,8 +253,8 @@ spec:
                   key: DB_DATABASE
             command: ["sh", "-c", "mysql -h$MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e \"DELETE FROM users WHERE user_code = '00000000';\""]
           restartPolicy: Never
-  successfulJobsHistoryLimit: 3         # 성공한 job history를 3개만 생성하도록 함.  
-  failedJobsHistoryLimit: 3             # 실패한 job history를 3개만 생성하도록 함.
+  successfulJobsHistoryLimit: 3         # 가장 최근에 성공한 job 3개만 유지하고 나머지는 자동으로 제거한다.  
+  failedJobsHistoryLimit: 3             # 가장 최근에 실패한 job 3개만 시스템에 유지되고 그 이전의 실패한 작업은 자동으로 정리됨
                                         # history에 제한을 두지 않으면 cronjob이 1분주기로 돌며 반복적인 history를 생성하게 됨
 ```
 
@@ -289,7 +289,83 @@ mini-project.yml 실행함
 - Grafana의 대시보드에서 Compute Resources/Workload 에 들어가 부하 확인
 - pod가 새로 생성되면서 부하가 분산됨을 확인
 
+부하테스트가 죽지 않아서 아래의 명령어로 docker 정지
+
+```
+docker stop [container ID]
+```
+
 
 다음장에서는 pod를 직접 늘려주는것이 아닌 k8s가 자동으로 늘려주는 방식을 진행함
 
 <br>
+
+
+# HPA(Horizonal Pod Autoscaler)
+
+## 정의
+
+미니 프로젝트에서 pod를 중가시켜 부하를 해결하는 방식으로 진행했다. 그러나 매번 수동으로 pod를 줄이거나 늘리는 작업은 쿠버네티스를 사용하는데 불편함으로 작용할 수 있다.
+
+HPA는 Node의 클러스터 오토스케일러처럼 Pod를 Scale-out/in을 해주는 쿠버네티스 오브젝트인 것이다.
+
+## HPA 설정
+
+metrics-server 플러그인 설치
+
+> https://github.com/kubernetes-sigs/metrics-server 로 접속해서 아래 명령어 실행
+
+```
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
+## HPA 구성 및 실행
+
+```yml
+# hpa.yml
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: last-week-project-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: last-week-project-deployment      # Deployment의 name
+  minReplicas: 3                            # 최소 생성 pod
+  maxReplicas: 10                           # 최대 생성 pod
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu                             # 컴퓨터 자원중 cpu의 부하에 pod를 오토스케일 할 수 있도록 설정
+      target:
+        type: Utilization
+        averageUtilization: 30              # 운영중인 모든 pod의 cpu가 30%이상 사용중이라면 sacle out을 할 수 있도록 하는 구성
+                                    # 현재 deplopment의 pod는 100m + 500m + 100m 총 700m의 cpu 사용량의 30% 이상 전체 pod가 사용중이라면 해당하는 pod를 추가로 생성한다.
+```
+
+hpa 실행 명령어
+
+```
+# 생성
+kubectl apply -v hpa.yml
+
+# 확인
+kubectl get hpa
+
+# 삭제
+kubectl delete hpa hpa
+```
+<br>
+
+hpa 적용전
+
+<img src="../images/grafana-hpa-before.png">
+
+<br>
+
+hpa 적용후
+
+<img src="../images/grafana-hpa-after.png">
